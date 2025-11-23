@@ -1,4 +1,5 @@
 import torch
+import config
 
 # opening the text file
 file_path = "data/shakespeare.txt"
@@ -41,9 +42,6 @@ threshold = int(len(data) * percentage)
 training = data[:threshold]
 validation = data[threshold:]
 
-block_size = 8 # size of samples
-batch_size = 4 # number of samples
-
 # training[:block_size+1] this is a piece of the training set; brings out 9 characters, but has 8 chances ot predict
 torch.manual_seed(1337)
 def get_batch(split):
@@ -52,20 +50,10 @@ def get_batch(split):
     else:
         data = validation
     # grab random positions (low is optional so this parameter is the high)
-    ix = torch.randint(len(data) - block_size, (batch_size,))
+    ix = torch.randint(len(data) - config.block_size, (config.batch_size,))
 
     # first time using vectorized form of iteration, seems to be recommended for pytorch/tensor apps
-    x = torch.stack([data[i:i + block_size] for i in ix])
-    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
+    x = torch.stack([data[i:i + config.block_size] for i in ix])
+    y = torch.stack([data[i + 1:i + config.block_size + 1] for i in ix])
 
     return x, y
-
-# creating examples
-xb, yb = get_batch("train") # xb are inputs, yb are outputs
-
-# how the transformer looks ahead 
-for b in range(batch_size):
-    for i in range(block_size):
-        context = xb[b, :i+1] # 2d array accessing
-        target = yb[b, i]
-        # print(f"When we have {context} the next is {target}")
